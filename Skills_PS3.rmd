@@ -1,0 +1,241 @@
+---
+title: "Skills PS3"
+author: "Zainab Feroze"
+date: "2023-04-16"
+output:
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+```
+
+<!-- Front matter
+
+This submission is my work alone and complies with the 30535 integrity policy.
+
+Add your initials to indicate your agreement: ZF
+Add your collaborators: N/A
+Late coins used this pset: 3. Late coins left: 1. -->
+
+<!-- 1.1 --> 
+```{r error = T}
+table3
+```
+
+```{r error = T}
+tb_cases <- table3 |>
+  select(country, `1999`, `2000`)
+
+tb_cases
+```
+
+```{r error = T}
+table3
+tb_population <- table3 |>
+  separate(rate, into = c("population", "year"), sep = "/") |>
+  select(country, year, population)
+```
+
+```{r error = T}
+table3 <- table3 |>
+  mutate(incidence = tb_cases/tb_population*10000)
+```
+<!-- 1.2 --> 
+
+```{r error = T}
+install.packages("reprex")
+library(reprex)
+table4a %>% pivot_longer(1999:2000, names_to = "year", values_to = "cases")
+reprex()
+```
+
+<!-- 1.3 Error message is because column names '1999' and '2000' are not valid
+because they begin with a number. We can fix the code as follows
+table4a |> pivot longer(`1999`:`2000`, names to = "year", values to = "cases")
+-->
+
+<!-- 1.4 pivot wider fails because tibble has duplicate combinations of 'name,'
+'key,' and 'value.' Can fix by adding unique IDs.-->
+
+```{r error = T}
+library(tibble)
+people <- tribble(
+  ~name, ~key, ~value,
+  "Phillip Woods", "age", 45,
+  "Phillip Woods", "height", 186,
+  "Phillip Woods", "age", 50,
+  "Phillip Woods", "height", 185,
+  "Jessica Cordero", "age", 37,
+  "Jessica Cordero", "height", 156)
+
+people <- rowid_to_column(people)
+
+people_wider <- pivot_wider(people, names_from = key, values_from = value)
+
+```
+
+
+<!-- 2.1 NA represents missing values. Zero represents a value of 0. -->
+<!-- 2.2 Without the mutate() step, we would get errors later due to variable
+name inconsistency ('newrel' vs 'new rel'). -->
+
+<!-- 2.3 (code below from textbook) -->
+
+```{r error = T}
+who %>%
+  pivot_longer(
+    cols = new_sp_m014:newrel_f65, 
+    names_to = "key", 
+    values_to = "cases", 
+    values_drop_na = TRUE
+  ) %>% 
+  mutate(
+    key = stringr::str_replace(key, "newrel", "new_rel")
+  ) %>%
+  separate(key, c("new", "var", "sexage")) %>% 
+  select(-new, -iso2, -iso3) %>% 
+  separate(sexage, c("sex", "age"), sep = 1)
+```
+
+
+<!-- 2.3.a -->
+```{r error = T}
+who_tb <- who |>
+  group_by(country, year, sex) |>
+  summarize(total_cases = sum(cases), na.rm = TRUE)
+who_tb
+```
+<!-- 2.3.e -->
+
+```{r error = T}
+ggplot(data = who_tb, aes(x = year, y = total_cases, group = sex, color = sex)) +
+  geom_line() +
+  labs(x = "Year", y = "TB Cases")
+```
+<!-- 2.3.f. From 1997 onward, TB cases generally increase with TB case rates 
+being generally higher for males compared to females across all years. The gap 
+between male and female TB rates becomes smaller over time, but males still have
+significantly higher rates of TB -->
+
+<!-- 2.3.b Raw values alone don't show what proportion of a country's population
+is affected overall, which also makes it harder to measure case rates over 
+time.-->
+
+<!-- 2.3.c -->
+
+```{r error = T}
+tb_mf_ratio <- who_tb |>
+  pivot_wider(names_from = "sex", values_from = "total_cases") |>
+  mutate(ratio = m / f)
+tb_mf_ratio
+```
+
+<!-- 2.3.d Because factors like demographics and healthcare access vary by 
+country, producing ratios while ignoring country could result in misleading 
+conclusions.-->
+
+
+<!-- 3.1 The distributions of x, y, and z are all similar, with most values 
+between 0 and 10, showing the length, width, and depth are close in their 
+measurements. -->
+```{r error = T}
+
+ggplot(diamonds, aes(x = x)) + 
+  geom_histogram(binwidth = 1)
+
+ggplot(diamonds, aes(x = y)) + 
+  geom_histogram(binwidth = 1)
+
+ggplot(diamonds, aes(x = z)) + 
+  geom_histogram(binwidth = 1)
+
+```
+
+<!-- 3.2 The greater the binwidth, the greater detail we can see, including a 
+gap at around 1000 dollars when we use binwidths of 100 or less, which 
+could indicate missing values -->
+
+```{r error = T}
+ggplot(diamonds, aes(x = price)) + 
+  geom_histogram(binwidth = 100)
+```
+
+```{r error = T}
+ggplot(diamonds, aes(x = price)) + 
+  geom_histogram(binwidth = 300)
+```
+
+```{r error = T}
+ggplot(diamonds, aes(x = price)) + 
+  geom_histogram(binwidth = 700)
+```
+
+```{r error = T}
+ggplot(diamonds, aes(x = price)) + 
+  geom_histogram(binwidth = 30)
+```
+
+<!-- 3.3 Missing values in a factor variable are treated as a separate category
+and are plotted. Missing values in a numeric variable are typically excluded 
+from the chart. The difference is because factors are categorical variables, 
+meaning missing values are valid to plot, whereas numeric variables have 
+continuous values and therefore missing values do not fit  -->
+
+```{r error = T}
+
+df_factor <- data.frame(x = factor(c("A", NA, "B", "C", "D", NA, NA)))
+ggplot(df_factor, aes(x)) + geom_bar()
+
+
+df_numeric <- data.frame(x = c(1, NA, 2, NA, 4, 5, NA))
+ggplot(df_numeric, aes(x)) + geom_bar()
+
+```
+
+<!-- 4.3
+Pro of geom histo is it can be easy to see distribution but the con is it's
+difficult to interpret with several different categories. geom freqpoly is it 
+allows for easy identification of each categorical variable but it is difficult
+to compare the distribution of each categorical variable. geom violin allows 
+for a better illustration of the distribution of both air time as well as the
+carriers but it could difficult to interpret with too many categorical 
+variables.-->
+```{r error = T}
+library(ggplot2)
+library(nycflights13)
+
+data(flights)
+df_flights <- flights |> select(air_time, carrier)
+
+ggplot(df_flights, aes(x = air_time)) +
+  geom_histogram()
+
+ggplot(df_flights, aes(x = air_time, color = carrier)) +
+  geom_freqpoly()
+
+ggplot(df_flights, aes(x = carrier, y = air_time)) +
+  geom_violin()
+
+```
+<!-- 4.4 The distribution of large diamonds is right skewed and, unsurprisingly
+larger diamonds are more expensive.-->
+```{r error = T}
+ggplot(diamonds, aes(x = price)) +
+  geom_histogram(binwidth = 500)
+
+
+```
+
+```{r error = T}
+ggplot(diamonds, aes(x = price)) +
+  geom_histogram(binwidth = 10000)
+
+```
+
